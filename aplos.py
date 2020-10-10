@@ -17,7 +17,7 @@ except:
     import rsa
 
 api_base_url = 'https://www.aplos.com/hermes/api/v1/'
-api_id = '131c4bad-481a-46ee-80ce-9d0ddd71d0fd'
+
 
 
 with open(api_id + '.key', mode='rb') as pkeyfile:

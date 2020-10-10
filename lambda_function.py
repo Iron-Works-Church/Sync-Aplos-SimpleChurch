@@ -9,6 +9,7 @@ import boto3
 # Define AWS SNS Client
 
 sns = boto3.client('sns')
+church_name = "Iron Works Church"
 
 # Import credentials
 
@@ -100,7 +101,7 @@ def add_deposit_aplos(api_base_url, api_id, api_access_token, batch_details):
   "note": batch_details["name"],
   "date": batch_details["date"],
   "contact": {
-     "companyname": "Iron Works Church",
+     "companyname": church_name,
      "type": "company"
     },
     "lines": []
@@ -138,8 +139,7 @@ def match_funds(api_base_url, api_id, api_access_token, batch_details):
 
     
   
-        
-lambda_handler("test", "test")
+
 
             
         
