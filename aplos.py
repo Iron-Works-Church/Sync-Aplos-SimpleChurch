@@ -84,45 +84,6 @@ def api_transactions_get(api_base_url, api_id, api_access_token, parameters):
     #print(response)
     return (response)
 
-def api_transactions_post(api_base_url, api_id, api_access_token):
-    # This should print a contact from Aplos.
-    # Lets show what we're doing.
-    headers = {'Authorization': 'Bearer: {}'.format(api_access_token)}
-    print('Posting URL: {}transactions'.format(api_base_url))
-    print('With headers: {}'.format(headers))
 
-    # Actual request goes here.
-    # Note, these values must match extant data so you need fund: 647 and
-    # accounts, 1000 and 4002. If these aren't there, you will get a 422.
-    payload = '{"note": "Insert a transaction", ' \
-                '"date": "2020-10-09", ' \
-                '"contact": { ' \
-                    '"companyname": "Aplos", ' \
-                    '"type": "company" }, ' \
-                '"lines": [ { ' \
-                    '"amount": 123.45, ' \
-                    '"account": { ' \
-                        '"account_number": 100027 }, ' \
-                        '"fund": { ' \
-                            '"id": 264819 } }, ' \
-                    '{ ' \
-                    '"amount": -123.45, ' \
-                    '"account": { ' \
-                        '"account_number": 1000 }, ' \
-                        '"fund": { ' \
-                            '"id": 264819 ' \
-                '} } ] }'
-
-    #r = requests.post(
-     #   '{}transactions'.format(api_base_url), headers=headers, data=payload)
-    #api_error_handling(r.status_code)
-    #response = r.json()
-    #print('JSON response: {}'.format(response))
-    #return (response)
 api_access_token = api_auth(api_base_url, api_id, api_user_key)
 
-# print(api_access_token)
-# #accounts = api_accounts_get(api_base_url, api_id, api_access_token)
-# #print(accounts)
-# api_transactions_get(api_base_url, api_id, api_access_token)
-# #api_transactions_post(api_base_url, api_id, api_access_token)
