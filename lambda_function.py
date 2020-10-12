@@ -6,6 +6,7 @@ import requests
 from aplos import *
 import boto3
 
+
 # Define AWS SNS Client
 
 sns = boto3.client('sns')
@@ -19,14 +20,22 @@ with open("creds.json", encoding='utf-8') as f:
     sc_pass = credentials["sc_pass"]
     sc_baseurl = credentials["sc_baseurl"]
     s3_bucket = credentials["s3_bucket"]
-    api_id = credentials["aplos_api_id"]
     sns_topic = credentials["sns_topic"]
+  
 
 def lambda_handler(event, context):
     relevant_batches = []
+    batch_details = {}
     sc_session = simplechurch_auth(sc_user, sc_pass, sc_baseurl)
     get_batches(sc_session, sc_baseurl, relevant_batches)
-    get_batch_detail(sc_session, sc_baseurl, relevant_batches)
+    batch_details = get_batch_detail(sc_session, sc_baseurl, relevant_batches)
+
+    if not check_aplos(batch_details):
+        print("making deposit")
+        batch_details = match_funds(api_base_url, api_id, api_access_token, batch_details)
+        add_deposit_aplos(api_base_url, api_id, api_access_token, batch_details)
+        create_cp_xfer_expense(api_base_url, api_id, api_access_token, batch_details, church_name)
+        create_cp_xfer_deposit(api_base_url, api_id, api_access_token, batch_details, church_name) 
     return {
         'statusCode': 200,
         'body': json.dumps('Completed')
@@ -74,7 +83,7 @@ def get_batch_detail(sc_session, sc_baseurl, relevant_batches):
                     if fund not in batch_details["details"]:
                         batch_details["details"][fund] = {"id": 62, "amount": 0}
                     batch_details["details"][fund]["amount"] = round((i2["amount"]), 2) + round(batch_details["details"][fund]["amount"], 2)
-                check_aplos(batch_details)
+        return(batch_details)
 
 def check_aplos(batch_details):
     params = {}
@@ -85,12 +94,8 @@ def check_aplos(batch_details):
     for i in aplos_transactions["data"]["transactions"]:
         if i["note"] == batch_details["name"] and "${:,.2f}".format(i["amount"]) == "${:,.2f}".format(float(batch_details["total"])):
             deposit_exists = True
-    if deposit_exists:
-        print("Deposit Exists - No action Taken")
-    else:
-        print("Making new Deposit")
-        batch_details = match_funds(api_base_url, api_id, api_access_token, batch_details)
-        add_deposit_aplos(api_base_url, api_id, api_access_token, batch_details)
+    return(deposit_exists)
+
     
 def add_deposit_aplos(api_base_url, api_id, api_access_token, batch_details):
     headers = {'Authorization': 'Bearer: {}'.format(api_access_token)}
@@ -116,9 +121,6 @@ def add_deposit_aplos(api_base_url, api_id, api_access_token, batch_details):
     response = r.json()
     sns.publish(TopicArn=sns_topic, Message=('JSON response: {}'.format(response)))
 
-
-
-
 def match_funds(api_base_url, api_id, api_access_token, batch_details):
     headers = {'Authorization': 'Bearer: {}'.format(api_access_token)}
     print('geting URL: {}funds'.format(api_base_url))
@@ -136,8 +138,6 @@ def match_funds(api_base_url, api_id, api_access_token, batch_details):
             quit()
     return(batch_details)
  
-
-    
   
 
 
