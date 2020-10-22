@@ -61,29 +61,31 @@ def get_batches(sc_session, sc_baseurl, relevant_batches):
         batch_date = datetime.strptime(i["dateReceived"], "%Y-%m-%d")
         if batch_date > date_range:
             relevant_batches.append(i["id"])
+    print(relevant_batches)
     return(relevant_batches)
 
 def get_batch_detail(sc_session, sc_baseurl, relevant_batches):
     funds = []
     batch_details = {}
+    batch_details["details"] = {}
     for i in relevant_batches:
         url = ''.join([sc_baseurl, "giving/batch/", str(i)])
         params = {"session_id": sc_session}
         response = requests.get(url, params=params)
         batches = response.json()
-        batch_details["name"] = batches["data"]["name"]
-        batch_details["date"] = batches["data"]["dateReceived"]
-        batch_details["total"] = batches["data"]["expectedTotal"]
-        batch_details["details"] = {}
+        print(batches)
         if "Tithely" not in batches["data"]["name"]:
             if float(batches["data"]["expectedTotal"]) == batches["data"]["currentTotal"]:
+                batch_details["name"] = batches["data"]["name"]
+                batch_details["date"] = batches["data"]["dateReceived"]
+                batch_details["total"] = batches["data"]["expectedTotal"]
                 for i2 in batches["data"]["entries"]:
                     fund = i2["category"]["name"]
-                    #print(fund)
                     if fund not in batch_details["details"]:
                         batch_details["details"][fund] = {"id": 62, "amount": 0}
                     batch_details["details"][fund]["amount"] = round((i2["amount"]), 2) + round(batch_details["details"][fund]["amount"], 2)
-        return(batch_details)
+    print(batch_details)
+    return(batch_details)
 
 def check_aplos(batch_details):
     params = {}
@@ -111,10 +113,12 @@ def add_deposit_aplos(api_base_url, api_id, api_access_token, batch_details):
     },
     "lines": []
     }
+    print(batch_details)
     for k, v in batch_details["details"].items():
         payload["lines"].append({"amount": v["amount"], "account": {"account_number": 1000}, "fund": {"id": v["id"]}})
         payload["lines"].append({"amount": 0 - v["amount"], "account": {"account_number": 4000}, "fund": {"id": v["id"]}})
     jsonData = json.dumps(payload)
+    pprint.pprint(jsonData)
     r = requests.post(
         '{}transactions'.format(api_base_url), headers=headers, data=jsonData)
     api_error_handling(r.status_code)
@@ -138,7 +142,7 @@ def match_funds(api_base_url, api_id, api_access_token, batch_details):
             quit()
     return(batch_details)
  
-  
+lambda_handler("event", "context")
 
 
             
